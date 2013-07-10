@@ -1,7 +1,7 @@
 package com.example.dropchatv2;
 
 
-
+import drop.to.server.messageapi;
 import com.google.android.gms.location.LocationClient;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -38,6 +38,7 @@ public class MainActivity extends FragmentActivity implements LocationListener {
 	double lat;
 	double lon;
 	Location loc;
+	String message;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -69,7 +70,13 @@ public class MainActivity extends FragmentActivity implements LocationListener {
 			public void onClick(View v) {
 				// TODO Auto-generated method stub
 				EditText location = (EditText) findViewById(R.id.header);
-				location.setText(lat+","+lon);
+				message = location.getText().toString();
+				
+						 
+				messageapi mat = new messageapi(message, lat, lon, "http://192.168.1.101:3000/drops");
+				mat.execute();
+
+				//location.setText(lat+","+lon);
 
 			}
 
