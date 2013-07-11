@@ -35,6 +35,8 @@ public class messageapi extends AsyncTask<String, Integer, String>{
 			String droppoint = new String(Double.toString(latitude)+","+Double.toString(longitude));
 			try {
 				drop.put("message", message);
+				//drop.put("latitude", latitude);
+				//drop.put("longitude", latitude);
 				drop.put("droppoint", droppoint);
 				obj.put("drop", drop);
 			} catch (JSONException e) {

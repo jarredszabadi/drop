@@ -1,9 +1,20 @@
 package com.example.dropchatv2;
 
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+import java.io.IOException;
+
 
 import drop.to.server.messageapi;
+import android.provider.MediaStore.Files.FileColumns;
 import com.google.android.gms.location.LocationClient;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -19,19 +30,30 @@ import com.google.android.maps.Overlay;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.Bitmap.CompressFormat;
+import android.graphics.BitmapFactory;
 
 import android.location.LocationListener;
 
 
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import android.support.v4.app.FragmentActivity;
+import android.util.Config;
+import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -39,7 +61,7 @@ import android.view.View.OnClickListener;
 
 
 
-public class MainActivity extends FragmentActivity implements LocationListener, OnMapClickListener{
+public class MainActivity extends FragmentActivity implements LocationListener, OnMapClickListener, OnClickListener{
 	private static GoogleMap map;
 	private LocationManager locationManager;
 	private String provider;
@@ -48,8 +70,18 @@ public class MainActivity extends FragmentActivity implements LocationListener, 
 	Location loc;
 	String message;
 	Marker dropPoint;
+	private static final int REQUEST_CODE = 1;
+	private static int TAKE_PICTURE = 1;
+	private static final int CAMERA_REQUEST = 1888;
+
+	private Bitmap bitmap;
+	private ImageView imageView;
 	private static Marker[] dropPoints = new Marker[10];
-	
+	Button dropb;
+	Button captureb;
+	File file;
+	File root;
+	Uri fileuri;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -58,17 +90,21 @@ public class MainActivity extends FragmentActivity implements LocationListener, 
 		
 		SupportMapFragment fm = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
 		setMap(fm.getMap());
+
+	    dropb = (Button) findViewById(R.id.drop);
+	    dropb.setOnClickListener(this);
 		
-	    Button dropb = (Button) findViewById(R.id.drop);
-		Button open = (Button) findViewById(R.id.open);
-		
+	    captureb = (Button) findViewById(R.id.capture);
+	    captureb.setOnClickListener(this);
 		
 		getMap().setMyLocationEnabled(true);
 		getMap().setOnMapClickListener(this);
 		
 		
 		locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-	    // Define the criteria how to select the locatioin provider -> use
+	    
+		
+		// Define the criteria how to select the locatioin provider -> use
 	    // default
 	    Criteria criteria = new Criteria();
 	    provider = locationManager.getBestProvider(criteria, false);
@@ -79,55 +115,13 @@ public class MainActivity extends FragmentActivity implements LocationListener, 
         }
         locationManager.requestLocationUpdates(provider, 20000, 0, this);
         
-        
-        
-	    
-	    dropb.setOnClickListener(new OnClickListener() {
-			
-			@Override
-			public void onClick(View v) {
-				// TODO Auto-generated method stub
-				EditText location = (EditText) findViewById(R.id.header);
-				message = location.getText().toString();
-				
-						 
-				messageapi mat = new messageapi(message, lat, lon, "http://192.168.1.101:3000/drops");
-				messageapi.setMethod(1);
-				mat.execute();
 
-				//location.setText(lat+","+lon);
-
-			}
-
-		});
-	    
-	    /*open.setOnClickListener(new OnClickListener() {
-			
-			@Override
-			public void onClick(View v) {
-				// TODO Auto-generated method stub
-				
-				
-				
-						 
-				messageapi mat = new messageapi(message, lat, lon, "http://192.168.1.101:3000/drops/5");
-				messageapi.setMethod(2);
-				mat.execute();
-				//System.out.println(drop.to.server.messageapi.markerm);
-				//dropPoint = getMap().addMarker(new MarkerOptions().position(point).title("Drop here")
-		        	//	.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
-				
-
-				
-
-			}
-
-		});*/
-	    
-		 
-		
 		
 	}
+	
+	 
+	      
+	
 	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -219,7 +213,72 @@ public class MainActivity extends FragmentActivity implements LocationListener, 
 		MainActivity.map = map;
 	}
 
+	@Override
+	public void onClick(View v) {
+		if(v.getId() == R.id.drop){
+			EditText location = (EditText) findViewById(R.id.header);
+			message = location.getText().toString();
+			
+			System.out.println("hiiiii");
+					 
+			messageapi mat = new messageapi(message, lat, lon, "http://172.17.150.149:3000/drops");
+			messageapi.setMethod(1);
+			mat.execute();
+		}
+		if(v.getId() == R.id.capture){
+			Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+			File file = new File(Environment.getExternalStorageDirectory(), "test.jpg");
+			fileuri = Uri.fromFile(file);
+			intent.putExtra(MediaStore.EXTRA_OUTPUT, fileuri);
+			startActivityForResult(intent, TAKE_PICTURE);
+			
+			/*Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE); 
+			File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
+			System.out.println("Where to store: "+dir);
+            File output = new File(dir, "camerascript.png");
+            cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT,Uri.fromFile(output));
+            startActivityForResult(cameraIntent, CAMERA_REQUEST); 
+            */
+            
+           
+		}
+
+	}
+	
+	public void onActivityResult(int requestCode, int resultCode, Intent data) {
+		/*if (requestCode == CAMERA_REQUEST && resultCode == RESULT_OK) {  
+            Bitmap photo = (Bitmap) data.getExtras().get("data"); 
+            imageView.setImageBitmap(photo);
+            /*ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 40, bytes);
+
+            //you can create a new file name "test.jpg" in sdcard folder.
+            File f = new File(Environment.getExternalStorageDirectory()
+                                    + File.separator + "test.jpg");
+            try {
+				f.createNewFile();
+				//write the bytes in file
+	            FileOutputStream fo = new FileOutputStream(f);
+	            fo.write(bytes.toByteArray());
+
+	            // remember close de FileOutput
+	            fo.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}*/
+		if (requestCode == TAKE_PICTURE){
+			System.out.println(fileuri.toString());
+		}
+           
+        //}  
+
+	}
+
+
+}
+
 
 
   
-}
+
