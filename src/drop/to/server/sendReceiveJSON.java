@@ -5,9 +5,17 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.loopj.android.http.AsyncHttpClient;
+import com.loopj.android.http.AsyncHttpResponseHandler;
+import com.loopj.android.http.RequestParams;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -27,14 +35,145 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.os.Environment;
+import android.util.Base64;
 import android.util.Log;
 
 public class sendReceiveJSON {
-
-
-
 	
+	
+	public static void postImage(){
+	    RequestParams params = new RequestParams();
+	    params.put("picture[name]","MyPictureName");
+	    try {
+			params.put("picture[photo]", new File(Environment.getExternalStorageDirectory().getPath() + "/test.jpg"));
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	    AsyncHttpClient client = new AsyncHttpClient();
+	    client.post("http://192.168.1.101:3000/pictures", params, new AsyncHttpResponseHandler() {
+	        @Override
+	        public void onSuccess(String response) {
+	            Log.w("async", "success!!!!");
+	        }                                                                                                                                                                     
+	    }); 
+	} 
+	
+/*
+	Bitmap imagex;
+	public static String sendImage(Bitmap b, String requestURL){
+		Bitmap immagex=BitmapFactory.decodeFile("mnt/sdcard/test.jpg");
+		System.out.println("i am here");
+	    ByteArrayOutputStream baos = new ByteArrayOutputStream();  
+	    
+	    immagex.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+	    byte[] b1 = baos.toByteArray();
+	    
+	    String imageEncoded = Base64.encodeToString(b1,Base64.DEFAULT);
+	    
+	    JSONObject obj = new JSONObject();
+	    JSONObject photo = new JSONObject();
+	    try {
+			photo.put("photo", imageEncoded);
+			obj.put("picture", photo);
+		} catch (JSONException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+	    
+	    
+	    
+	    
+	    
+		URL url;
+		OutputStream os;
+		String response = null;
+		try {
+			url = new URL(requestURL);
+			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+			conn.setDoOutput(true);
 
+			conn.setRequestMethod("POST");
+
+			conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+            conn.setRequestProperty("Content-Length", "" + Integer.toString(b1.length));
+            conn.setRequestProperty("Authorization", "e554a3335cbcbda16891976c6fb43c5e");
+            conn.setRequestProperty("User_Authorization", "e6eb6b7133900826101b1c471fcacfd5");
+
+			os = conn.getOutputStream();
+			OutputStreamWriter osw = new OutputStreamWriter(os);
+			osw.write(obj.toString());
+			osw.flush();
+
+			response = getCreateResponse(conn);
+
+		} catch (MalformedURLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ProtocolException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	    return response;
+	    
+	    
+	}*/
+/*
+	public static String sendMessage(String requestURL){
+		URL url;
+		
+		try {
+			url = new URL("http://localhost:8080/handler");
+			HttpURLConnection con = (HttpURLConnection)url.openConnection();
+			con.setDoInput(true);
+		    con.setDoOutput(true);
+		    con.setUseCaches(false);
+		    con.setRequestProperty("Content-Type", "image/jpeg");
+		    con.setRequestMethod("POST");
+		    InputStream in = new FileInputStream("c:/temp/poc/img/mytest2.jpg");
+		    OutputStream out = con.getOutputStream();
+		    copy(in, con.getOutputStream());
+				out.flush();
+			
+		    out.close();
+		} catch (MalformedURLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	    
+	    
+	    
+		return requestURL;
+	}
+	
+	protected static long copy(InputStream input, OutputStream output){
+	    
+		byte[] buffer = new byte[12288]; // 12K
+	    long count = 0L;
+	    int n = 0;
+	    
+	    try {
+	    while (-1 != (n = input.read(buffer))){ 
+	        
+				output.write(buffer, 0, n);
+		 
+	        count += n;}
+	    }
+	    catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	    return count;
+	}*/
 
 
 	public static String createDrop(String requestURL, JSONObject obj) {
@@ -50,6 +189,8 @@ public class sendReceiveJSON {
 
 			conn.setRequestProperty("Content-Type", "application/json");
 			conn.setRequestProperty("Accept", "application/json");
+			conn.setRequestProperty("Authorization", "e554a3335cbcbda16891976c6fb43c5e");
+            conn.setRequestProperty("User_Authorization", "5c4a6360d5891742521a88a4f5cc81ae");
 
 			os = conn.getOutputStream();
 			OutputStreamWriter osw = new OutputStreamWriter(os);

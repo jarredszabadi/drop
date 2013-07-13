@@ -3,6 +3,7 @@ package com.example.dropchatv2;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.FileOutputStream;
@@ -79,9 +80,11 @@ public class MainActivity extends FragmentActivity implements LocationListener, 
 	private static Marker[] dropPoints = new Marker[10];
 	Button dropb;
 	Button captureb;
+	Button openb;
 	File file;
 	File root;
 	Uri fileuri;
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -93,6 +96,9 @@ public class MainActivity extends FragmentActivity implements LocationListener, 
 
 	    dropb = (Button) findViewById(R.id.drop);
 	    dropb.setOnClickListener(this);
+	    
+	    openb = (Button) findViewById(R.id.open);
+	    openb.setOnClickListener(this);
 		
 	    captureb = (Button) findViewById(R.id.capture);
 	    captureb.setOnClickListener(this);
@@ -221,7 +227,7 @@ public class MainActivity extends FragmentActivity implements LocationListener, 
 			
 			System.out.println("hiiiii");
 					 
-			messageapi mat = new messageapi(message, lat, lon, "http://172.17.150.149:3000/drops");
+			messageapi mat = new messageapi(message, lat, lon, "http://99.224.181.196:3000/api/v1/drops");
 			messageapi.setMethod(1);
 			mat.execute();
 		}
@@ -242,6 +248,13 @@ public class MainActivity extends FragmentActivity implements LocationListener, 
             
            
 		}
+		if(v.getId() == R.id.open){
+			messageapi mat = new messageapi(bitmap, "http://99.224.181.196:3000/api/v1/drops");
+			messageapi.setMethod(3);
+			mat.execute();
+			
+		}
+		
 
 	}
 	
@@ -268,6 +281,10 @@ public class MainActivity extends FragmentActivity implements LocationListener, 
 				e.printStackTrace();
 			}*/
 		if (requestCode == TAKE_PICTURE){
+			bitmap = BitmapFactory.decodeFile(fileuri.getPath());
+			//bitmap=BitmapFactory.decodeStream(getContentResolver().openInputStream(fileuri));
+			System.out.println("bitmap: "+bitmap.toString());
+            //imageView.setImageBitmap(photo);
 			System.out.println(fileuri.toString());
 		}
            

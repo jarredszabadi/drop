@@ -3,6 +3,7 @@ package drop.to.server;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.graphics.Bitmap;
 import android.os.AsyncTask;
 
 public class messageapi extends AsyncTask<String, Integer, String>{
@@ -12,12 +13,19 @@ public class messageapi extends AsyncTask<String, Integer, String>{
 	private String requestURL;
 	static int metho;
 	public static String markerm;
+	public static Bitmap b;
 
 
 	public messageapi(String message, double latitude, double longitude, String requestURL){
 		this.message = message;
 		this.latitude = latitude;
 		this.longitude = longitude;
+		this.requestURL = requestURL;
+		markerm = new String();
+
+	}
+	
+	public messageapi(Bitmap imageBitmap, String requestURL){
 		this.requestURL = requestURL;
 		markerm = new String();
 
@@ -34,11 +42,10 @@ public class messageapi extends AsyncTask<String, Integer, String>{
 			
 			String droppoint = new String(Double.toString(latitude)+","+Double.toString(longitude));
 			try {
-				drop.put("message", message);
-				//drop.put("latitude", latitude);
-				//drop.put("longitude", latitude);
-				drop.put("droppoint", droppoint);
-				obj.put("drop", drop);
+				drop.put("text", message);
+				drop.put("lattitude", latitude);
+				drop.put("longitude", longitude);
+				obj.put("Drop", drop);
 			} catch (JSONException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -58,12 +65,12 @@ public class messageapi extends AsyncTask<String, Integer, String>{
 				
 			break;
 
-			/*case 3:
-				System.out.println("Receiving from: "+requestURL);
-				returnString = sendReceiveJSON.getAllDrops(requestURL);
+			case 3:
+				System.out.println("Sending Image: "+requestURL);
+				sendReceiveJSON.postImage();//returnString = sendReceiveJSON.sendImage(b, requestURL);
 				System.out.println("Message from " + requestURL + ": "+ returnString + "\n");
 				
-			break;*/
+			break;
 			}
 			return returnString;
 
