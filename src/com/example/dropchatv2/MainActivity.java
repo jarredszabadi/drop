@@ -16,6 +16,9 @@ import java.io.IOException;
 
 import drop.to.server.messageapi;
 import android.provider.MediaStore.Files.FileColumns;
+
+
+import com.example.dropchatv2.R;
 import com.google.android.gms.location.LocationClient;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -71,19 +74,20 @@ public class MainActivity extends FragmentActivity implements LocationListener, 
 	Location loc;
 	String message;
 	Marker dropPoint;
-	private static final int REQUEST_CODE = 1;
-	private static int TAKE_PICTURE = 1;
-	private static final int CAMERA_REQUEST = 1888;
 
-	private Bitmap bitmap;
-	private ImageView imageView;
+
+
 	private static Marker[] dropPoints = new Marker[10];
 	Button dropb;
 	Button captureb;
 	Button openb;
 	File file;
 	File root;
-	Uri fileuri;
+	private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
+	private static final int CAPTURE_VIDEO_ACTIVITY_REQUEST_CODE = 200;
+	private Uri fileUri;
+	public static final int MEDIA_TYPE_IMAGE = 1;
+	public static final int MEDIA_TYPE_VIDEO = 2;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -96,9 +100,6 @@ public class MainActivity extends FragmentActivity implements LocationListener, 
 
 	    dropb = (Button) findViewById(R.id.drop);
 	    dropb.setOnClickListener(this);
-	    
-	    openb = (Button) findViewById(R.id.open);
-	    openb.setOnClickListener(this);
 		
 	    captureb = (Button) findViewById(R.id.capture);
 	    captureb.setOnClickListener(this);
@@ -225,73 +226,103 @@ public class MainActivity extends FragmentActivity implements LocationListener, 
 			EditText location = (EditText) findViewById(R.id.header);
 			message = location.getText().toString();
 			
-			System.out.println("hiiiii");
+			
 					 
-			messageapi mat = new messageapi(message, lat, lon, "http://99.224.181.196:3000/api/v1/drops");
+			messageapi mat = new messageapi(message, lat, lon, "http://fierce-bayou-3100.herokuapp.com/drops");
 			messageapi.setMethod(1);
 			mat.execute();
 		}
 		if(v.getId() == R.id.capture){
-			Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-			File file = new File(Environment.getExternalStorageDirectory(), "test.jpg");
-			fileuri = Uri.fromFile(file);
-			intent.putExtra(MediaStore.EXTRA_OUTPUT, fileuri);
-			startActivityForResult(intent, TAKE_PICTURE);
-			
-			/*Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE); 
-			File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
-			System.out.println("Where to store: "+dir);
-            File output = new File(dir, "camerascript.png");
-            cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT,Uri.fromFile(output));
-            startActivityForResult(cameraIntent, CAMERA_REQUEST); 
-            */
-            
-           
-		}
-		if(v.getId() == R.id.open){
-			messageapi mat = new messageapi(bitmap, "http://99.224.181.196:3000/api/v1/drops");
-			messageapi.setMethod(3);
-			mat.execute();
+			 Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+				
+			    Uri fileUri = getOutputMediaFileUri(MEDIA_TYPE_IMAGE); // create a file to save the image
+			    setImageURI(fileUri);
+			    
+			    /*notice how we don't include this line...if we do then data = null in onActivityResult*/
+			    intent.putExtra(MediaStore.EXTRA_OUTPUT, fileUri); // set the image file name
+		
+			    // start the image capture Intent
+			    startActivityForResult(intent, CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
 			
 		}
 		
 
 	}
 	
-	public void onActivityResult(int requestCode, int resultCode, Intent data) {
-		/*if (requestCode == CAMERA_REQUEST && resultCode == RESULT_OK) {  
-            Bitmap photo = (Bitmap) data.getExtras().get("data"); 
-            imageView.setImageBitmap(photo);
-            /*ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 40, bytes);
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		//System.out.println("TEST: "+data);
+		if (requestCode == CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE) {
+	        if (resultCode == RESULT_OK) {
+	        	
+	        	messageapi mp = new messageapi(fileUri, "http://fierce-bayou-3100.herokuapp.com/pictures");
+	        	mp.setMethod(2);
+	        	mp.execute();
+	        	
+	        	} else if (resultCode == RESULT_CANCELED) {
+	            // User cancelled the image capture
+	        } else {
+	            // Image capture failed, advise user
+	        }
+	    }
 
-            //you can create a new file name "test.jpg" in sdcard folder.
-            File f = new File(Environment.getExternalStorageDirectory()
-                                    + File.separator + "test.jpg");
-            try {
-				f.createNewFile();
-				//write the bytes in file
-	            FileOutputStream fo = new FileOutputStream(f);
-	            fo.write(bytes.toByteArray());
-
-	            // remember close de FileOutput
-	            fo.close();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}*/
-		if (requestCode == TAKE_PICTURE){
-			bitmap = BitmapFactory.decodeFile(fileuri.getPath());
-			//bitmap=BitmapFactory.decodeStream(getContentResolver().openInputStream(fileuri));
-			System.out.println("bitmap: "+bitmap.toString());
-            //imageView.setImageBitmap(photo);
-			System.out.println(fileuri.toString());
-		}
-           
-        //}  
-
+	    if (requestCode == CAPTURE_VIDEO_ACTIVITY_REQUEST_CODE) {
+	        if (resultCode == RESULT_OK) {
+	            // Video captured and saved to fileUri specified in the Intent
+	            Toast.makeText(this, "Video saved to:\n" +
+	                     data.getData(), Toast.LENGTH_LONG).show();
+	        } else if (resultCode == RESULT_CANCELED) {
+	            // User cancelled the video capture
+	        } else {
+	            // Video capture failed, advise user
+	        }
+	    }
+	    
 	}
+	public void setImageURI(Uri fileuri){
+		  this.fileUri=fileuri;
+	  }
 
+	  /** Create a file Uri for saving an image or video */
+		private static Uri getOutputMediaFileUri(int type){
+		      return Uri.fromFile(getOutputMediaFile(type));
+		}
+
+		/** Create a File for saving an image or video */
+		private static File getOutputMediaFile(int type){
+		    // To be safe, you should check that the SDCard is mounted
+		    // using Environment.getExternalStorageState() before doing this.
+
+		    File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(
+		              Environment.DIRECTORY_PICTURES), "MyCameraApp");
+		    // This location works best if you want the created images to be shared
+		    // between applications and persist after your app has been uninstalled.
+
+		    // Create the storage directory if it does not exist
+		    if (! mediaStorageDir.exists()){
+		        if (! mediaStorageDir.mkdirs()){
+		            Log.d("MyCameraApp", "failed to create directory");
+		            return null;
+		        }
+		    }
+
+		    // Create a media file name
+		    String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+		    File mediaFile;
+		    if (type == MEDIA_TYPE_IMAGE){
+		        mediaFile = new File(mediaStorageDir.getPath() + File.separator +
+		        "IMG_"+ timeStamp + ".jpg");
+		    } else if(type == MEDIA_TYPE_VIDEO) {
+		        mediaFile = new File(mediaStorageDir.getPath() + File.separator +
+		        "VID_"+ timeStamp + ".mp4");
+		    } else {
+		        return null;
+		    }
+
+		    return mediaFile;
+		}
+		
+	  
 
 }
 

@@ -4,6 +4,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.AsyncTask;
 
 public class messageapi extends AsyncTask<String, Integer, String>{
@@ -13,8 +14,8 @@ public class messageapi extends AsyncTask<String, Integer, String>{
 	private String requestURL;
 	static int metho;
 	public static String markerm;
-	public static Bitmap b;
-
+	Uri fileUri;
+	
 
 	public messageapi(String message, double latitude, double longitude, String requestURL){
 		this.message = message;
@@ -25,8 +26,9 @@ public class messageapi extends AsyncTask<String, Integer, String>{
 
 	}
 	
-	public messageapi(Bitmap imageBitmap, String requestURL){
+	public messageapi(Uri fileUri, String requestURL){
 		this.requestURL = requestURL;
+		this.fileUri = fileUri;
 		markerm = new String();
 
 	}
@@ -42,9 +44,8 @@ public class messageapi extends AsyncTask<String, Integer, String>{
 			
 			String droppoint = new String(Double.toString(latitude)+","+Double.toString(longitude));
 			try {
-				drop.put("text", message);
-				drop.put("lattitude", latitude);
-				drop.put("longitude", longitude);
+				drop.put("message", message);
+				drop.put("droppoint", droppoint);
 				obj.put("Drop", drop);
 			} catch (JSONException e) {
 				// TODO Auto-generated catch block
@@ -52,25 +53,19 @@ public class messageapi extends AsyncTask<String, Integer, String>{
 			}
 
 			System.out.println("Sending: " + obj.toString() + "to "+ requestURL);
-			returnString = sendReceiveJSON.createDrop(requestURL, obj);
+			returnString = sendReceiveJSON.createDrop(requestURL,drop);
 			System.out.println("Message from " + requestURL + ": "+ returnString + "\n");
 			
 			
 			break;
 			case 2:
-				System.out.println("Getting: " +requestURL);
-				markerm = sendReceiveJSON.getSingleDrop(requestURL);
-				System.out.println("Message from " + requestURL + ": "+ markerm + "\n");
+				System.out.println("Sending Image: "+requestURL);
+				sendReceiveJSON.sendImage(fileUri, requestURL);//returnString = sendReceiveJSON.sendImage(b, requestURL);
+				System.out.println("Message from " + requestURL + ": "+ returnString + "\n");
 				
 				
 			break;
 
-			case 3:
-				System.out.println("Sending Image: "+requestURL);
-				sendReceiveJSON.postImage();//returnString = sendReceiveJSON.sendImage(b, requestURL);
-				System.out.println("Message from " + requestURL + ": "+ returnString + "\n");
-				
-			break;
 			}
 			return returnString;
 
